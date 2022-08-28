@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Display data</title>
+        <script src = "https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </head>
+    <body>
+
+        <div>
+            <canvas id="lineChart" width="500" height="300"></canvas>
+            <canvas id="piChart" width="500" height="500"></canvas>
+        </div>
+        <script>
+            (function(url) {
+            const limit = 9;
+            const canvas = document.getElementById('lineChart');
+            const ctx = new Chart(canvas, {
+                type: 'line',
+                data: {
+                labels: [],
+                datasets: [{
+                    label: 'MyDataset',
+                    backgroundColor: 'rgb(255, 100, 132)',
+                    borderColor: 'rgb(255, 100, 132)',
+                    data: []
+                }]
+                },
+                options: {
+                    scales: {
+                        yAxis: {
+                        max: 20,
+                        min: 0
+                        }
+                    },
+                    responsive: false
+
+                }
+            });
+    
+            setInterval(async () => {
+                const data = await fetch(url).then(resp => resp.ok && resp.json());
+                if (data) {
+                const { time, value } = data;
+    
+                const overflow = ctx.data.labels.length - limit;
+                if (overflow > 0) {
+                    ctx.data.labels.splice(0, overflow);
+                    ctx.data.datasets[0].data.splice(0, overflow);
+                }
+    
+                ctx.data.labels.push(time);
+                ctx.data.datasets[0].data.push(value);
+                ctx.update();
+                }
+            }, 1000);
+        
+            const pi_canvas = document.getElementById('piChart');
+                const pi_ctx = new Chart(pi_canvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                                label: 'MyDataset',
+                                backgroundColor: 'rgb(245, 237, 12)' ,
+                                borderColor: 'rgb(255, 100, 132)',
+                                data: []
+                            }]
+                    },
+                    options: {
+                        responsive: false
+                    }
+                });
+                
+                setInterval(async () => {
+                    const data = await fetch(url).then(resp => resp.ok && resp.json());
+                    if (data) {
+                        const { time, value } = data;
+        
+                        const overflow = pi_ctx.data.labels.length - limit;
+                        if (overflow > 0) {
+                            // ctx.data.labels.splice(0, overflow);
+                            pi_ctx.data.datasets[0].data.splice(0, overflow);
+                        }
+            
+                        //ctx.data.labels.push(time);
+                        pi_ctx.data.datasets[0].data.push(value);
+                        pi_ctx.update();
+                    }
+
+                }, 300);
+                })
+                ({{ url_for('data') | tojson }});
+        </script>
+
+    </body>
+
+</html>
+
